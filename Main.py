@@ -38,7 +38,7 @@ maxId = 0
 # toplam ne kadar tivit gelecek
 maxTweets = 10
 # apiden tek sorguda kaç tivit gelecek
-tweetsPerQry = 5
+tweetsPerQry = 10
 tweetCount = 0
 fName = 'tweets.txt'
 screenName = os.getenv('screenName')
@@ -46,25 +46,30 @@ screenName = os.getenv('screenName')
 
 def datetime_to_srt(o):
     if isinstance(o, datetime.datetime):
-        return o.replace(microsecond=0).__str__()
+        return str(o.replace(microsecond=0))
 
 
+# twitterden tweetleri alıp geri döndürüyor
 def get_new_tweets(screen_name, tweet_per_qry_count, tweet_mode='extended', since_id=None, max_id=0):
     return api.user_timeline(screen_name=screen_name, count=tweet_per_qry_count, tweet_mode=tweet_mode,
                              since_id=since_id, max_id=str(max_id - 1) if max_id > 0 else None)
-    '''if maxId <= 0:
-        if not sinceId:
-            return api.user_timeline(screen_name=screen_name, count=tweet_per_qry_count, tweet_mode=tweet_mode)
-        else:
-            return api.user_timeline(screen_name=screen_name, count=tweet_per_qry_count,
-                                     since_id=since_id, tweet_mode=tweet_mode)
-    else:
-        if not sinceId:
-            return api.user_timeline(screen_name=screen_name, count=tweet_per_qry_count, tweet_mode=tweet_mode,
-                                     max_id=str(max_id - 1))
-        else:
-            return api.user_timeline(screen_name=screen_name, count=tweet_per_qry_count, tweet_mode=tweet_mode,
-                                     since_id=since_id, max_id=str(max_id - 1))'''
+
+
+# dosyadaki json formatındaki verileri okuyup döndürüyor
+def read_json_file(file):
+    with open(file, 'r', encoding='utf-8') as f:
+        tweets = []
+        for tweet_line in json.load(f):
+            tweets.append(tweet_line)
+    return tweets
+
+
+# gelen geriyi dosyada kaydedilecek şekilde kişiselleştirip json olarak geri döndürüyor
+def tweet_json_format(json_tweet):
+    return {"screen_name": json_tweet.user.screen_name, "name": json_tweet.user.name,
+            "user_id": json_tweet.user.id, "tweet_id": json_tweet.id, "full_text": json_tweet.full_text,
+            "created_at": datetime_to_srt(json_tweet.created_at),
+            "eklenme_tarihi": datetime_to_srt(datetime.datetime.utcnow())}
 
 
 print("Downloading max {0} tweets".format(maxTweets))
@@ -76,14 +81,12 @@ with open(fName, 'w', encoding="utf-8") as f:
             if not new_tweets:
                 print("No more tweets found")
                 break
+            tweetJson = []
             for tweet in new_tweets:
-                tweetJson = {"screen_name": tweet.user.screen_name, "name": tweet.user.name,
-                             "user_id": tweet.user.id, "tweet_id": tweet.id, "full_text": tweet.full_text,
-                             "created_at": datetime_to_srt(tweet.created_at),
-                             "eklenme_tarihi": datetime_to_srt(datetime.datetime.utcnow())}
-                f.write(
-                    json.dumps(tweetJson, ensure_ascii=False, indent=4)
-                )
+                tweetJson.append(tweet_json_format(tweet))
+            f.write(
+                json.dumps(tweetJson, ensure_ascii=False, indent=4)
+            )
             tweetCount += len(new_tweets)
             print("Downloaded {0} tweets".format(tweetCount))
             maxId = new_tweets[-1].id
