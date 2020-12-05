@@ -1,0 +1,11 @@
+{
+    "11111111111111": {
+        "screen_name": "aaaaaa",
+        "name": "aaaaaaa",
+        "user_id": 1111111111,
+        "tweet_id": 11111111111111,
+        "full_text": "null",
+        "created_at": "2020-12-03 12:14:14",
+        "eklenme_tarihi": "2020-12-03 12:14:14"
+    }
+}
