@@ -1,9 +1,9 @@
 import tweepy
 import sys
 import json
-import locale
 import datetime
 import time
+import logging
 # dotenv start
 from dotenv import load_dotenv
 import os
@@ -14,7 +14,7 @@ load_dotenv()
 # function_name, GLOBAL_CONSTANT_NAME, global_var_name, instance_var_name,
 # function_parameter_name, local_var_name
 
-locale.setlocale(locale.LC_ALL, "Turkish")
+logging.basicConfig(filename='log.txt', level=logging.INFO)
 
 consumer_key = os.getenv('consumer_key')
 consumer_secret = os.getenv('consumer_secret')
@@ -51,7 +51,6 @@ def get_timeline_tweets(screen_name, tweet_per_qry_count, tweet_mode='extended',
 
 class TweetFormat(object):
     def __init__(self, data):
-        test = sorted(data.keys())
         self.__dict__ = data
 
     # 'if in' için
@@ -110,6 +109,7 @@ sinceId = None
 # Sonuçlar yalnızca belirli bir kimliğin altındaysa, max_id'i bu kimliğe ayarlayın.
 # varsayılan olarak üst sınır yoksa, arama sorgusuyla eşleşen en son tweet ile başlayın.
 maxId = 0
+logging.info("###############################Program başladı####################################")
 while True:
     print("{0}. döngü".format(dongu))
     if loadFile:
@@ -128,13 +128,14 @@ while True:
                 break
             for apiTweet in apiReqTweets:
                 if not apiTweet.id_str in tweetDb:
-                    newTweets[apiTweet.id] = tweet_json_format2(apiTweet)
+                    newTweets[apiTweet.id] = tweet_json_format(apiTweet)
             tweetCount += len(apiReqTweets)
             allTweetCount += len(newTweets)
             print("Download {0} tweet, Found {1} new tweets".format(tweetCount, len(newTweets)))
-            maxId = apiReqTweets[-1].id
+            #maxId = apiReqTweets[-1].id
             sinceId = apiReqTweets[0].id
         except tweepy.TweepError as e:
+            logging.error(str(e))
             # Just exit if any error
             print("some error : " + str(e))
             break
@@ -146,6 +147,7 @@ while True:
         loadFile = True
         print(
             "Found {0} new tweets and all found {1} tweets, Saved to {2}".format(len(newTweets), allTweetCount, fName))
+    logging.info("{0}-) <----{1}----> yeni tweet eklendi. Toplam = {2} ({3})".format(dongu, len(newTweets), allTweetCount, datetime.datetime.utcnow().replace(microsecond=0)))
     newTweets.clear()
     dongu = dongu+1
     time.sleep(20)
