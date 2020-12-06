@@ -7,6 +7,8 @@ import logging
 import sys
 from dotenv import load_dotenv
 
+load_dotenv()
+
 
 class CustomDataFormat(dict):
     def __init__(self, data):
@@ -23,7 +25,6 @@ logging.basicConfig(filename='log.txt', level=logging.INFO, format='%(asctime)s-
                     datefmt='%Y-%m-%d %H:%M:%S')
 logging.info('############# Program Başladı #############')
 
-load_dotenv()
 CONSUMER_KEY = os.getenv('consumer_key')
 CONSUMER_SECRET = os.getenv('consumer_secret')
 screen_name = os.getenv('screenName')
@@ -39,7 +40,9 @@ tweets_per_qry = 5
 total_new_tweet_count = 0
 new_tweet_count = 0
 db_filename = "tweets.txt"
-tekrar = 0
+step = 0
+mükerrer = 0
+sleep_second = 20
 
 customized_api_response = list()
 local_tweets = list()
@@ -67,15 +70,26 @@ while True:
     # bu döngüde yeni tweet var ise en son yazılan tweet en sona gelecek şekilde sıralıyorum.
     # daha sonra bunu listeyi dosyaya yazdırıyorum.
     if new_tweet_count > 0:
+        local_tweets = sorted(local_tweets, key=lambda x: x["tweet_id"])
         # listenin içindeki dict leri yazdırıyor
         with open(db_filename, 'w', encoding="utf-8") as db_file:
-            local_tweets = sorted(local_tweets, key=lambda x: x["tweet_id"])
             json.dump(local_tweets, db_file, indent=4, ensure_ascii=False)
+        mükerrer = 0
+    else:
+        mükerrer += 1
 
-    logging.info('%s-> bu döngüde eklenen: %s, toplam eklenen: %s', tekrar, new_tweet_count, total_new_tweet_count)
+    # 60 dk boyunca yeni tweet gelmediyse bundan sonra bekleme süresini 20 saniyeden 30dk ya çıkarıyor.
+    # büyük sayılarla uğraşmamak için saniyeyi 60 a bölüp dk cinsinden kontrol ediyorum
+    if mükerrer*(sleep_second/60) > 60:
+        # 30 dk = 1800 saniye
+        sleep_second = 1800
+    else:
+        sleep_second = 20
+
+    logging.info('%s-> bu döngüde eklenen: %s, toplam eklenen: %s', step, new_tweet_count, total_new_tweet_count)
 
     total_new_tweet_count += new_tweet_count
-    tekrar += 1
+    step += 1
     new_tweet_count = 0
     customized_api_response.clear()
-    time.sleep(20)
+    time.sleep(sleep_second)
