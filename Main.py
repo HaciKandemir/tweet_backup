@@ -19,6 +19,20 @@ class CustomDataFormat(dict):
         self["full_text"] = data["full_text"]
         self["created_at"] = str(datetime.strptime(data["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))
         self["eklenme_tarihi"] = str(datetime.utcnow().replace(microsecond=0))
+        # eğer bu varsa tweet bir yanıtttır. mesajı yazdığı kişinin id si
+        if data["in_reply_to_user_id"] is not None:
+            self["in_reply_to_user_id"] = data["in_reply_to_user_id"]
+            self["in_reply_to_screen_name"] = data["in_reply_to_screen_name"]
+            self["in_reply_to_status_id"] = data["in_reply_to_status_id"]
+        # Tweeti yorumlu RT etmiş ise.
+        # yorumu self["full_text"] de
+        if data["is_quote_status"]:
+            # RT edilen tweet metini
+            self["quoted_status_full_text"] = data["quoted_status"]["full_text"]
+        # bu key sadece RT edilen tweetlerde oluyor
+        if "retweeted_status" in data:
+            # yorum katmadan sadece RT edilmiş tweetin metni
+            self["retweeted_status_full_text"] = data["retweeted_status"]["full_text"]
 
 
 logging.basicConfig(filename='log.txt', level=logging.INFO, format='%(asctime)s-%(levelname)s: %(message)s ',
@@ -85,6 +99,8 @@ while True:
         sleep_second = 1800
     else:
         sleep_second = 20
+
+    total_new_tweet_count += new_tweet_count
 
     logging.info('%s-> bu döngüde eklenen: %s, toplam eklenen: %s', step, new_tweet_count, total_new_tweet_count)
 
