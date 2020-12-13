@@ -54,9 +54,14 @@ tweets_per_qry = 5
 total_new_tweet_count = 0
 new_tweet_count = 0
 db_filename = "tweets.txt"
+# üst üste belirli bir süre yeni tweet bulunmaz ise bekleme sürerisi arttırmada kontrol amaçlı kullanılıyor.
+# (step,mükerrer)
 step = 0
 mükerrer = 0
 sleep_second = 20
+
+since_id = None
+max_id = 0
 
 customized_api_response = list()
 local_tweets = list()
@@ -65,10 +70,13 @@ local_tweets = list()
 if os.stat(db_filename).st_size != 0:
     with open(db_filename, 'r', encoding="utf-8") as db_file:
         local_tweets = json.load(db_file)
+        # dosyada en yeni veri en sonda olduğu için -1 ile ulaşıyorum
+        since_id = local_tweets[-1]["tweet_id"]
 
 while True:
     # api_res kendisi list içinde 0,1,2 indexlerinde dict şeklinde tweetleri saklıyor
-    api_res = api.user_timeline(screen_name=screen_name, count=tweets_per_qry, tweet_mode="extended")
+    api_res = api.user_timeline(screen_name=screen_name, count=tweets_per_qry, tweet_mode="extended",
+                                since_id=since_id, max_id=str(max_id - 1) if max_id > 0 else None)
 
     # api_res içerisindeki ihtiyacım olan verilerden daha minik bir dict oluşturup listeye ekliyorum
     for api_res_json in api_res:
@@ -104,7 +112,15 @@ while True:
 
     logging.info('%s-> bu döngüde eklenen: %s, toplam eklenen: %s', step, new_tweet_count, total_new_tweet_count)
 
-    total_new_tweet_count += new_tweet_count
+    # api res de tweetler varsa bunu yapsın.
+    if api_res:
+        # gelen veride en eski veri en sonda olduğu için -1 ile ulaşıyorum
+        max_id = api_res[-1]["id"]
+    # eğer yok ise uygulama kapalı kaldığı süre boyunca atılan tweetlerin hepsi indirilmiştir.
+    else:
+        # bundan sonra sadece en son atılan tweetleri almak için atamlar yapılıyor.
+        since_id = local_tweets[-1]["tweet_id"]
+        max_id = 0
     step += 1
     new_tweet_count = 0
     customized_api_response.clear()
