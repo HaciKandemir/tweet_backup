@@ -13,22 +13,28 @@ load_dotenv()
 class CustomDataFormat(dict):
     def __init__(self, data):
         self["tweet_id"] = data["id"]
+        self["tweet_id_str"] = data["id_str"]
         self["screen_name"] = data["user"]["screen_name"]
         self["name"] = data["user"]["name"]
         self["user_id"] = data["user"]["id"]
+        self["user_id_str"] = data["user"]["id_str"]
         self["full_text"] = data["full_text"]
         self["created_at"] = str(datetime.strptime(data["created_at"], '%a %b %d %H:%M:%S +0000 %Y'))
         self["eklenme_tarihi"] = str(datetime.utcnow().replace(microsecond=0))
         # eğer bu varsa tweet bir yanıtttır. mesajı yazdığı kişinin id si
         if data["in_reply_to_user_id"] is not None:
             self["in_reply_to_user_id"] = data["in_reply_to_user_id"]
+            self["in_reply_to_user_id_str"] = data["in_reply_to_user_id_str"]
             self["in_reply_to_screen_name"] = data["in_reply_to_screen_name"]
             self["in_reply_to_status_id"] = data["in_reply_to_status_id"]
+            self["in_reply_to_status_id_str"] = data["in_reply_to_status_id_str"]
         # Tweeti yorumlu RT etmiş ise.
         # yorumu self["full_text"] de
         if data["is_quote_status"]:
             # RT edilen tweet metini
             self["quoted_status_full_text"] = data["quoted_status"]["full_text"]
+            self["quoted_status_screen_name"] = data["quoted_status"]["in_reply_to_screen_name"]
+            self["quoted_status_name"] = data["quoted_status"]["user"]["name"]
         # bu key sadece RT edilen tweetlerde oluyor
         if "retweeted_status" in data:
             # yorum katmadan sadece RT edilmiş tweetin metni
@@ -104,7 +110,8 @@ while True:
     # büyük sayılarla uğraşmamak için saniyeyi 60 a bölüp dk cinsinden kontrol ediyorum
     if mükerrer*(sleep_second/60) > 60:
         # 30 dk = 1800 saniye
-        sleep_second = 1800
+        # 20 = 1200
+        sleep_second = 1200
     else:
         sleep_second = 20
 
@@ -113,7 +120,7 @@ while True:
     logging.info('%s-> bu döngüde eklenen: %s, toplam eklenen: %s', step, new_tweet_count, total_new_tweet_count)
 
     # api res de tweetler varsa bunu yapsın.
-    if api_res:
+    if api_res and since_id:
         # gelen veride en eski veri en sonda olduğu için -1 ile ulaşıyorum
         max_id = api_res[-1]["id"]
     # eğer yok ise uygulama kapalı kaldığı süre boyunca atılan tweetlerin hepsi indirilmiştir.
