@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Karasakal</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <style type="text/css">
+        body{
+            background-color: rgb(21, 32, 43);
+            color: white;
+        }
+        .quotation{
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .quotation-content{
+            
+            border: 0 solid black;
+            border-width: 1px;
+            border-radius: 16px;
+            border-color: rgb(56, 68, 77);
+        }
+        .user-head{
+            margin-top: 10px;
+            display: flex;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        .qua-prof{
+            margin-right: 5px;
+            width: 20px;
+            height: 20px;
+        }
+        .quotation-text{
+            margin-bottom: 10px;
+            margin-left: 10px;
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+        .content{
+            margin-bottom: 0px !important;
+        }
+        .action{
+            font-size: small;
+        }
+        .tweet-acc{
+            color: white;
+        }
+        .tweet-id{
+            font-size: small;
+            flex: 1;
+            color: var(--grey-text);
+            transition: .2s;
+        }
+        a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main">
+            <div class="tweets">
+                {% for tweet in tweets|reverse %}
+                <div id={{tweet.tweet_id_str}} class="tweet fullw">
+                    <div class="tweet-header-icon"></div>
+                    <div class="tweet-header-text">
+                        {# tweet bir yorum ise yorum yazdığı tweetin id si #}
+                        {% if tweet.in_reply_to_status_id is defined %}
+                        <a href="#{{ tweet.in_reply_to_status_id_str }}" class="action">Cevap verilen tweet id: {{ tweet.in_reply_to_status_id_str }}</a>
+                        {% endif %}
+                    </div>
+                    <div class="tweet-author">
+                        <div class="tweet-aut-prof" style="background-image: url(https://twivatar.glitch.me/{{tweet.screen_name}});"></div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-title fullw">
+                            <a href="" class="tweet-acc">{{tweet.name}}</a>
+                            <p class="tweet-usr">@{{tweet.screen_name}}</p>
+                            <p class="tweet-date">· 2h</p>
+                        </div>
+                        <div class="content fulw">
+                            <p>{{tweet.full_text}}</p>
+                            <div class="quotation">
+                                {# alıntıladığı tweete yorumunu katmış ise true #}
+                                {% if tweet.quoted_status_full_text is defined %}
+                                <div class="quotation-content">
+                                    <div class="user-head">
+                                        <div class="tweet-aut-prof qua-prof" style="background-image: url(https://twivatar.glitch.me/{{tweet.quoted_status_screen_name}});"></div>
+                                        <a href="" class="tweet-acc">{{tweet.quoted_status_name}}</a>
+                                        <p class="tweet-usr">@{{tweet.quoted_status_screen_name}}</p>
+                                        <p class="tweet-date">· 2h</p>
+                                    </div>
+                                    <div class="quotation-text">
+                                        <p>{{tweet.quoted_status_full_text}}</p>
+                                    </div>
+                                </div>
+                                {% endif%}
+                            </div>
+                            <div class="tweet-actions fullw">
+                                <p class="tweet-id">Tweer id: {{tweet.tweet_id_str}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!--<div id="555555" class="tweet fullw">
+                    <div class="tweet-header-icon"></div>
+                    <div class="tweet-header-text"></div>
+                    <div class="tweet-author">
+                        <div class="tweet-aut-prof" style="background-image: url(https://pbs.twimg.com/profile_images/1284471293086248960/VBLYOU8r_200x200.jpg);"></div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-title fullw">
+                            <a href="" class="tweet-acc">Karasakal</a>
+                            <p class="tweet-usr">@bruceformy</p>
+                            <p class="tweet-date">· 2h</p>
+                        </div>
+                        <div class="content fulw">
+                            <p>Barzaninin başına ne geldiyse ypgnin de başına gelecek olan odur. Denize çıkışı olmadığı sürece her türlü yaşamsal faaliyetteki ürün ve hizmetin ticareti onu çevreleyen diğer otoritelerin insafına kalır. Denize çıkışı olsaydı BM Kararı olmadan bu derece bir ambargo uygulanamazdı.</p>
+                            <div class="quotation">
+                                <div class="user-head">
+                                    <div class="tweet-aut-prof qua-prof" style="background-image: url(https://pbs.twimg.com/profile_images/1284471293086248960/VBLYOU8r_200x200.jpg);"></div>
+                                    <a href="" class="tweet-acc">Karasakal</a>
+                                    <p class="tweet-usr">@bruceformy</p>
+                                    <p class="tweet-date">· 2h</p>
+                                </div>
+                                <div class="quotation-text">
+                                    <p>Yakın yada uzak vadede Türkiye YPG gerçeğini kabullenir mi hocam</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <script>
+        $.getJSON('tweets.txt', function(data) {
+            $.each($(data).get().reverse(), function(index, element) {
+                console.log(element.tweet_id_str);
+                $('.tweets').append($('<div>', {
+                    id: element.tweet_id_str,
+                    class: 'tweet fullw'
+                }).append($('<div>', {
+                        class: 'tweet-header-icon'
+                    }),
+                    $('<div>', {
+                        class: 'tweet-header-text'
+                    }),
+                    $('<div>', {
+                        class: 'tweet-author'
+                    }).append($('<div>', {
+                        class: 'tweet-aut-prof',
+                        style: 'background-image: url(https://twivatar.glitch.me/' + element.screen_name + ');'
+                    })),
+                    $('<div>', {
+                        class: 'tweet-content'
+                    }).append($('<div>', {
+                            class: 'tweet-title fullw'
+                        }).append($('<a>', {
+                                class: 'tweet-acc',
+                                text: element.name
+                            }),
+                            $('<p>', {
+                                class: 'tweet-usr',
+                                text: '@' + element.screen_name
+                            }),
+                            $('<p>', {
+                                class: 'tweet-date',
+                                text: '· 5h'
+                            })),
+                        $('<div>', {
+                            class: 'content fullw'
+                        }).append($('<p>', {
+                                text: element.full_text
+                            }),
+                            $('<div>', {
+                                class: 'quotation'
+                            }),
+                            $('<div>', {
+                                class: 'tweet-actions fullw'
+                            }).append($('<div>', {
+                                class: 'action',
+                                text: 'Tweet id: ' + element.tweet_id_str
+                            })))
+                    )));
+                // alıntıladığı tweete yorumunu katmış
+                if (typeof element.quoted_status_full_text != 'undefined') {
+                    $('#' + element.tweet_id_str + ' .quotation').append($('<div>', {
+                        class: 'quotation-content',
+                    }).append($('<div>', {
+                        class: 'user-head'
+                    }).append($('<div>', {
+                        class: 'tweet-aut-prof qua-prof',
+                        style: 'background-image: url(https://twivatar.glitch.me/' + element.quoted_status_screen_name + ');'
+                    }), $('<a>', {
+                        class: 'tweet-acc',
+                        text: element.quoted_status_name
+                    }), $('<p>', {
+                        class: 'tweet-usr',
+                        text: '@' + element.quoted_status_screen_name
+                    }), $('<p>', {
+                        class: 'tweet-date',
+                        text: '· xh'
+                    })), $('<div>', {
+                        class: 'quotation-text'
+                    }).append($('<p>', {
+                        text: element.quoted_status_full_text
+                    }))));
+                };
+                // yanıt olarak yazıldığı tweetin id si
+                if (typeof element.in_reply_to_status_id != 'undefined') {
+                    $('#' + element.tweet_id_str + ' .tweet-header-text').html('Cevap verilen tweet id: ' + element.in_reply_to_status_id_str);
+                }
+            });
+        });    
+    </script>
+</body>
+</html>
